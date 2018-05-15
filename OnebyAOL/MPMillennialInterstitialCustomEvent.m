@@ -122,6 +122,16 @@ static NSString *const kMoPubMMAdapterDCN = @"dcn";
 - (void)interstitialAdLoadDidSucceed:(MMInterstitialAd *)ad {
     MPLogDebug(@"Millennial interstitial %@ did load, creative ID %@.", ad, self.creativeInfo.creativeId);
     [self.delegate interstitialCustomEvent:self didLoadAd:ad];
+    NSMutableDictionary *networkInfo = [NSMutableDictionary dictionary];
+    if(ad.creativeInfo.creativeId) {
+        networkInfo[@"mmCreativeId"] = ad.creativeInfo.creativeId;
+    }
+    if(ad.creativeInfo.demandSource) {
+        networkInfo[@"mmDemandSource"] = ad.creativeInfo.demandSource;
+    }
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"AdDidLoadForMillennialMedia"
+                                                        object:nil
+                                                      userInfo:networkInfo];
 }
 
 - (void)interstitialAd:(MMInterstitialAd *)ad loadDidFailWithError:(NSError *)error {
