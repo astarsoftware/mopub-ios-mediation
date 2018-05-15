@@ -137,6 +137,18 @@ static NSString *const kMoPubMMAdapterDCN = @"dcn";
     MPLogDebug(@"Millennial banner %@ did load, creative ID %@", ad, self.creativeInfo.creativeId);
     [delegate bannerCustomEvent:self didLoadAd:ad.view];
     [delegate trackImpression];
+    
+    NSMutableDictionary *networkInfo = [NSMutableDictionary dictionary];
+    if(ad.creativeInfo.creativeId) {
+        networkInfo[@"mmCreativeId"] = ad.creativeInfo.creativeId;
+    }
+    if(ad.creativeInfo.demandSource) {
+        networkInfo[@"mmDemandSource"] = ad.creativeInfo.demandSource;
+    }
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"AdDidLoadForMillennialMedia"
+                                                        object:nil
+                                                      userInfo:networkInfo];
 }
 
 - (void)inlineAd:(MMInlineAd *)ad requestDidFailWithError:(NSError *)error {
