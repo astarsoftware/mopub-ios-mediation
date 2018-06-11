@@ -5,9 +5,10 @@
 //
 
 #import "MPMillennialBannerCustomEvent.h"
-#import "MPLogging.h"
-#import "MPAdConfiguration.h"
-#import "MPInstanceProvider.h"
+#if __has_include("MoPub.h")
+    #import "MPLogging.h"
+    #import "MPAdConfiguration.h"
+#endif
 #import "MMAdapterVersion.h"
 
 static NSString *const kMoPubMMAdapterAdUnit = @"adUnitID";
@@ -44,7 +45,7 @@ static NSString *const kMoPubMMAdapterDCN = @"dcn";
                 [mmSDK setConsentRequired: FALSE];
             
             if ( [[MoPub sharedInstance] currentConsentStatus] == MPConsentStatusConsented ) {
-                [mmSDK setConsentDataValue: @"1" forKey:@"MoPub"];
+                [mmSDK setConsentDataValue: @"1" forKey:@"mopub"];
             }
             
         } else {
