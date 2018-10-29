@@ -1,7 +1,29 @@
 ## Changelog
+* 5.0.1.0
+    * This version of the adapters has been certified with Facebook Audience Network 5.0.1.
+
+* 5.0.0.0
+    * This version of the adapters has been certified with Facebook Audience Network 5.0.0.
+    * Remove calls to disableAutoRefresh for banner (deprecated by Facebook).
+    * Enable publishers to use the advertiser name asset as it is a required asset starting in Facebook 4.99.0 (https://developers.facebook.com/docs/audience-network/guidelines/native-ads#name).
+
+* 4.99.2.1
+    * Align MoPub's interstitial impression tracking to that of Facebook Audience Network.
+        * Automatic impression tracking is disabled, and Facebook's `interstitialAdWillLogImpression` is used to fire MoPub impressions.
+
+* 4.99.2.0
+    * This version of the adapters has been certified with Facebook Audience Network 4.99.2.
+
+* 4.99.1.0
+    * This version of the adapters has been certified with Facebook Audience Network 4.99.1 for all ad formats. Publishers must use the latest native ad adapters for compatibility.
+
+* 4.99.0.0
+    * This version of the adapters has been certified with Facebook Audience Network 4.99.0 for all ad formats except native ads.
+    * This version of the Audience Network SDK deprecates several existing native ad APIs used in the existing adapters. As a result, the current native ad adapters are not compatible. Updates require changes from the MoPub SDK as well, so we are planning to release new native ad adapters along with our next SDK release. Publishers integrated with Facebook native ads are recommended to use the pre-4.99.0 SDKs until the updates are available.
+
 * 4.28.1.3
-      * update adapters to remove dependency on MPInstanceProvider
-      * Update adapters to be compatible with MoPub iOS SDK framework
+    * Update adapters to remove dependency on MPInstanceProvider
+    * Update adapters to be compatible with MoPub iOS SDK framework
 
 * 4.28.1.2
     * This version of the adapters has been certified with Facebook Audience Network 4.28.1.

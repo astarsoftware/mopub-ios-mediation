@@ -77,6 +77,7 @@
     dispatch_once(&once, ^{
         [Chartboost startWithAppId:appId appSignature:appSignature delegate:self];
         [Chartboost setMediation:CBMediationMoPub withVersion:MP_SDK_VERSION];
+        [Chartboost setAutoCacheAds:FALSE];
     });
 }
 
@@ -231,6 +232,13 @@
 - (void)didFailToLoadRewardedVideo:(CBLocation)location withError:(CBLoadError)error
 {
     [[self rewardedVideoEventForLocation:location] didFailToLoadRewardedVideo:location withError:CBLoadErrorInternal];
+}
+
+- (void)didDismissRewardedVideo:(CBLocation)location
+{
+    [[self rewardedVideoEventForLocation:location] didDismissRewardedVideo:location];
+    [self.rewardedVideoEvents removeObjectForKey:location];
+    [Chartboost cacheRewardedVideo:location];
 }
 
 - (void)didCloseRewardedVideo:(CBLocation)location
