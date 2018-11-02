@@ -91,7 +91,7 @@
   [self.delegate bannerCustomEvent:self didLoadAd:self.adBannerView];
 	
   ASAdTracker *adTracker = [DependencyInjector objectWithClass:[ASAdTracker class]];
-  [adTracker adDidLoadForNetwork:@"facebook" data:nil];
+  [adTracker adDidLoadForNetwork:@"admob" data:nil];
 }
 
 - (void)adView:(GADBannerView *)bannerView didFailToReceiveAdWithError:(GADRequestError *)error {
