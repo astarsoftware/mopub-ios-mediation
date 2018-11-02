@@ -13,6 +13,9 @@
 #import "MPLogging.h"
 #endif
 
+#import "DependencyInjector.h"
+#import "ASAdTracker.h"
+
 @interface MPGoogleAdMobBannerCustomEvent () <GADBannerViewDelegate>
 
 @property(nonatomic, strong) GADBannerView *adBannerView;
@@ -86,6 +89,9 @@
 - (void)adViewDidReceiveAd:(GADBannerView *)bannerView {
   MPLogInfo(@"Google AdMob Banner did load");
   [self.delegate bannerCustomEvent:self didLoadAd:self.adBannerView];
+	
+  ASAdTracker *adTracker = [DependencyInjector objectWithClass:[ASAdTracker class]];
+  [adTracker adDidLoadForNetwork:@"facebook" data:nil];
 }
 
 - (void)adView:(GADBannerView *)bannerView didFailToReceiveAdWithError:(GADRequestError *)error {

@@ -7,6 +7,8 @@
 
 #import <FBAudienceNetwork/FBAudienceNetwork.h>
 #import "FacebookBannerCustomEvent.h"
+#import "DependencyInjector.h"
+#import "ASAdTracker.h"
 
 #if __has_include("MoPub.h")
     #import "MPLogging.h"
@@ -106,6 +108,9 @@
 {
     MPLogInfo(@"Facebook banner ad did load");
     [self.delegate bannerCustomEvent:self didLoadAd:adView];
+	
+	ASAdTracker *adTracker = [DependencyInjector objectWithClass:[ASAdTracker class]];
+	[adTracker adDidLoadForNetwork:@"facebook" data:nil];
 }
 
 - (void)adViewWillLogImpression:(FBAdView *)adView

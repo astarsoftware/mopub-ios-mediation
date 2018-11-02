@@ -7,6 +7,8 @@
 
 #import <FBAudienceNetwork/FBAudienceNetwork.h>
 #import "FacebookInterstitialCustomEvent.h"
+#import "DependencyInjector.h"
+#import "ASAdTracker.h"
 
 #if __has_include("MoPub.h")
     #import "MPLogging.h"
@@ -102,6 +104,9 @@
     }];
     [self.expirationTimer scheduleNow];
 
+	
+	ASAdTracker *adTracker = [DependencyInjector objectWithClass:[ASAdTracker class]];
+	[adTracker adDidLoadForNetwork:@"facebook" data:nil];
 }
 
 - (void)interstitialAdWillLogImpression:(FBInterstitialAd *)interstitialAd

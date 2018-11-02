@@ -13,6 +13,9 @@
 #endif
 #import <CoreLocation/CoreLocation.h>
 
+#import "DependencyInjector.h"
+#import "ASAdTracker.h"
+
 @interface MPGoogleAdMobInterstitialCustomEvent () <GADInterstitialDelegate>
 
 @property(nonatomic, strong) GADInterstitial *interstitial;
@@ -78,6 +81,9 @@
 - (void)interstitialDidReceiveAd:(GADInterstitial *)interstitial {
   MPLogInfo(@"Google AdMob Interstitial did load");
   [self.delegate interstitialCustomEvent:self didLoadAd:self];
+  
+  ASAdTracker *adTracker = [DependencyInjector objectWithClass:[ASAdTracker class]];
+  [adTracker adDidLoadForNetwork:@"facebook" data:nil];
 }
 
 - (void)interstitial:(GADInterstitial *)interstitial
