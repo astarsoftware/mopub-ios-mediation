@@ -5,7 +5,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'MoPub-Applovin-Adapters'
-  s.version          = '5.1.2.1'
+  s.version          = '6.1.4.0'
   s.summary          = 'Applovin Adapters for mediating through MoPub.'
   s.description      = <<-DESC
 Supported ad formats: Banners, Interstitial, Rewarded Video and Native.\n
@@ -15,10 +15,10 @@ For inquiries and support, please visit https://www.applovin.com/support \n
   s.homepage         = 'https://github.com/mopub/mopub-ios-mediation'
   s.license          = { :type => 'New BSD', :file => 'LICENSE' }
   s.author           = { 'MoPub' => 'support@mopub.com' }
-  s.source           = { :git => 'https://github.com/mopub/mopub-ios-mediation.git', :tag => 'master' }
-  s.ios.deployment_target = '8.0'
+  s.source           = { :git => 'https://github.com/mopub/mopub-ios-mediation.git', :tag => 'applovin-6.1.4.0' }
+  s.ios.deployment_target = '9.0'
   s.static_framework = true
   s.source_files = 'Applovin/*.{h,m}'
   s.dependency 'mopub-ios-sdk', '~> 5.0'
-  s.dependency 'AppLovinSDK', '5.1.2'
+  s.dependency 'AppLovinSDK', '6.1.4'
 end

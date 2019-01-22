@@ -41,8 +41,18 @@
   }
 
   GADRequest *request = [GADRequest request];
+  if ([self.localExtras objectForKey:@"testDevices"]) {
+    request.testDevices = self.localExtras[@"testDevices"];
+  }
   request.requestAgent = @"MoPub";
 
+  if ([self.localExtras objectForKey:@"contentUrl"] != nil) {
+      NSString *contentUrl = [self.localExtras objectForKey:@"contentUrl"];
+      if ([contentUrl length] != 0) {
+          request.contentURL = contentUrl;
+      }
+  }
+    
   // Consent collected from the MoPub’s consent dialogue should not be used to set up Google's
   // personalization preference. Publishers should work with Google to be GDPR-compliant.
 

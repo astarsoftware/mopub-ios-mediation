@@ -54,7 +54,18 @@ static GADAdChoicesPosition adChoicesPosition;
     rootViewController = rootViewController.presentedViewController;
   }
   GADRequest *request = [GADRequest request];
+  if ([self.localExtras objectForKey:@"testDevices"]) {
+    request.testDevices = self.localExtras[@"testDevices"];
+  }
   request.requestAgent = @"MoPub";
+    
+  if ([self.localExtras objectForKey:@"contentUrl"] != nil) {
+      NSString *contentUrl = [self.localExtras objectForKey:@"contentUrl"];
+      if ([contentUrl length] != 0) {
+          request.contentURL = contentUrl;
+      }
+  }
+
   GADNativeAdImageAdLoaderOptions *nativeAdImageLoaderOptions =
       [[GADNativeAdImageAdLoaderOptions alloc] init];
   nativeAdImageLoaderOptions.shouldRequestMultipleImages = NO;
@@ -112,6 +123,7 @@ static GADAdChoicesPosition adChoicesPosition;
   GADUnifiedNativeAdView *gadUnifiedNativeAdView = [[GADUnifiedNativeAdView alloc] init];
 
   GADAdChoicesView *adChoicesView = [[GADAdChoicesView alloc] initWithFrame:CGRectZero];
+  adChoicesView.userInteractionEnabled = NO;
   [gadUnifiedNativeAdView addSubview:adChoicesView];
   gadUnifiedNativeAdView.adChoicesView = adChoicesView;
 
