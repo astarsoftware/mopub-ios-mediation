@@ -1,4 +1,38 @@
 ## Changelog
+  * 7.46.0.0
+    * This version of the adapters has been certified with AdMob 7.46.0.
+
+  * 7.44.0.0
+    * This version of the adapters has been certified with AdMob 7.44.0.
+
+  * 7.43.0.0
+    * This version of the adapters has been certified with AdMob 7.43.0.
+    * Move the `npa` from `MediationSettings` to `NetworkConfiguration`. [Click here](https://developers.mopub.com/publishers/mediation/networks/google/#instructions-for-passing-users-ad-preference-to-admob) for updated usage isntructions.
+
+  * 7.42.2.0
+    * Updated the adapter to use Google's new rewarded API.
+    * This version of the adapters has been certified with AdMob 7.42.2.
+    * Added support for publishers to pass `tagForChildDirectedTreatment` and `tagForUnderAgeOfConsent` tags to AdMob SDK via localExtras.
+
+  * 7.39.0.0
+    * This version of the adapters has been certified with AdMob 7.39.0.
+
+  * 7.37.0.4
+    * Adapters now fetch only the core MoPub iOS SDK (excluding viewability SDKs). Publishers wishing to integrate viewability should fetch the `mopub-ios-sdk` dependency in their own Podfile.
+
+  * 7.37.0.3
+    * Update Adapter Version in GoogleAdMobAdapterConfiguration to accommodate podspec changes for Unity releases. 
+
+  * 7.37.0.2
+    * Move source_files to the `Network` subspec. 
+
+  * 7.37.0.1
+    * **Note**: This version is only compatible with the 5.5.0+ release of the MoPub SDK.
+    * Add the `GoogleAdMobAdapterConfiguration` class to: 
+         * pre-initialize the AdMob SDK during MoPub SDK initialization process
+         * store adapter and SDK versions for logging purpose
+    * Streamline adapter logs via `MPLogAdEvent` to make debugging more efficient. For more details, check the [iOS Initialization guide](https://developers.mopub.com/docs/ios/initialization/) and [Writing Custom Events guide](https://developers.mopub.com/docs/ios/custom-events/).
+
   * 7.37.0.0
     * This version of the adapters has been certified with AdMob 7.37.0.
     * Allow publishers to pass test device IDs to the adapters (via localExtras) to get test ads from AdMob.

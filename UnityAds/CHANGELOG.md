@@ -1,5 +1,39 @@
 
 ## Changelog
+* 3.1.0.0
+    * This version of the adapters has been certified with Unity Ads 3.1.0.
+    * Add load API functionality via metadata API to prevent rewarded and interstitial placements from loading in UnityAds until `load` is called.
+
+* 3.0.3.0
+  * This version of the adapters has been certified with UnityAds 3.0.3.
+
+* 3.0.1.1
+  * Pass MoPub's log level to Unity Ads. To adjust Unity Ads' log level via MoPub's log settings, reference [this page](https://developers.mopub.com/publishers/ios/test/#enable-logging).
+
+* 3.0.1.0
+  * This version of the adapters has been certified with Unity Ads 3.0.1.
+  * Includes checks for Unity Ads availability to avoid timeouts.
+  
+* 3.0.0.5
+  * Rename `MPUnityRouter` to `UnityRouter` for consistency with other adapter class names. 
+
+* 3.0.0.4
+  * Adapters now fetch only the core MoPub iOS SDK (excluding viewability SDKs). Publishers wishing to integrate viewability should fetch the `mopub-ios-sdk` dependency in their own Podfile.
+
+* 3.0.0.3
+  * Update Adapter Version in UnityAdsAdapterConfiguration to accommodate podspec changes for Unity releases.
+  
+* 3.0.0.2
+  * Move source_files to the `Network` subspec.
+
+* 3.0.0.1
+  * **Note**: This version is only compatible with the 5.5.0+ release of the MoPub SDK.
+  * Add the `UnityAdsAdapterConfiguration` class to: 
+    * pre-initialize the Unity Ads SDK during MoPub SDK initialization process
+    * store adapter and SDK versions for logging purpose
+    * Streamline adapter logs via `MPLogAdEvent` to make debugging more efficient. For more details, check the [iOS Initialization guide](https://developers.mopub.com/docs/ios/initialization/) and [Writing Custom Events guide](https://developers.mopub.com/docs/ios/custom-events/).
+    * Allow supported mediated networks and publishers to opt-in to process a user’s personal data based on legitimate interest basis. More details [here](https://developers.mopub.com/docs/publisher/gdpr-guide/#legitimate-interest-support).
+
 * 3.0.0.0
   * This version of the adapters has been certified with UnityAds 3.0.0.
   * Add support for banner ad.
