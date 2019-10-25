@@ -37,7 +37,7 @@ static NSString *const kMoPubVASAdapterVideoCompleteEventId = @"onVideoComplete"
     return self;
 }
 
-- (void)requestRewardedVideoWithCustomEventInfo:(NSDictionary<NSString *, id> *)info
+- (void)requestRewardedVideoWithCustomEventInfo:(NSDictionary<NSString *, id> *)info adMarkup:(NSString *)adMarkup
 {
     MPLogAdEvent([MPLogEvent adLoadAttemptForAdapter:NSStringFromClass(self.class) dspCreativeId:nil dspName:nil], self.siteId);
     
@@ -49,16 +49,7 @@ static NSString *const kMoPubVASAdapterVideoCompleteEventId = @"onVideoComplete"
     __strong __typeof__(self.delegate) delegate = self.delegate;
     
     self.siteId = info[kMoPubVASAdapterSiteId];
-    if (self.siteId.length == 0)
-    {
-        self.siteId = info[kMoPubMillennialAdapterSiteId];
-    }
-    
     NSString *placementId = info[kMoPubVASAdapterPlacementId];
-    if (placementId.length == 0)
-    {
-        placementId = info[kMoPubMillennialAdapterPlacementId];
-    }
     
     if (self.siteId.length == 0 || placementId.length == 0)
     {

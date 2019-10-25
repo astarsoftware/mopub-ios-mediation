@@ -1,4 +1,10 @@
 ## Changelog
+  * 7.51.0.0
+    * This version of the adapters has been certified with AdMob 7.51.0.
+
+  * 7.50.0.1
+    * Stop implementing deprecated request API.
+
   * 7.50.0.0
     * This version of the adapters has been certified with AdMob 7.50.0 and is compatible with iOS 13.
 
