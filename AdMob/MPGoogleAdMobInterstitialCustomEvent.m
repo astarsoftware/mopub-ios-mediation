@@ -103,8 +103,14 @@
     MPLogAdEvent([MPLogEvent adLoadSuccessForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
     [self.delegate interstitialCustomEvent:self didLoadAd:self];
     
-    ASAdTracker *adTracker = [DependencyInjector objectWithClass:[ASAdTracker class]];
-    [adTracker adDidLoadForNetwork:@"admob" data:nil];
+    NSMutableDictionary *networkInfo = [NSMutableDictionary dictionary];
+    if( interstitial.responseInfo.responseIdentifier) {
+        networkInfo[@"admobResponseIdentifier"] = interstitial.responseInfo.responseIdentifier;
+    }
+
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"AdDidLoadForAdMob"
+                                                        object:nil
+                                                      userInfo:networkInfo];
 }
 
 - (void)interstitial:(GADInterstitial *)interstitial

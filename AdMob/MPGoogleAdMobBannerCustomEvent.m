@@ -116,9 +116,15 @@
   MPLogAdEvent([MPLogEvent adShowSuccessForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
     
   [self.delegate bannerCustomEvent:self didLoadAd:self.adBannerView];
-	
-  ASAdTracker *adTracker = [DependencyInjector objectWithClass:[ASAdTracker class]];
-  [adTracker adDidLoadForNetwork:@"admob" data:nil];
+    
+  NSMutableDictionary *networkInfo = [NSMutableDictionary dictionary];
+  if( bannerView.responseInfo.responseIdentifier) {
+      networkInfo[@"admobResponseIdentifier"] = bannerView.responseInfo.responseIdentifier;
+  }
+
+  [[NSNotificationCenter defaultCenter] postNotificationName:@"AdDidLoadForAdMob"
+                                                      object:nil
+                                                    userInfo:networkInfo];
 }
 
 - (void)adView:(GADBannerView *)bannerView didFailToReceiveAdWithError:(GADRequestError *)error {
