@@ -106,6 +106,8 @@
     NSMutableDictionary *networkInfo = [NSMutableDictionary dictionary];
     if( interstitial.responseInfo.responseIdentifier) {
         networkInfo[@"admobResponseIdentifier"] = interstitial.responseInfo.responseIdentifier;
+        networkInfo[@"adNetworkClassName"] = interstitial.responseInfo.adNetworkClassName;
+
     }
 
     [[NSNotificationCenter defaultCenter] postNotificationName:@"AdDidLoadForAdMob"

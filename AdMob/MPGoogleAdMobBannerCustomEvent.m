@@ -120,6 +120,7 @@
   NSMutableDictionary *networkInfo = [NSMutableDictionary dictionary];
   if( bannerView.responseInfo.responseIdentifier) {
       networkInfo[@"admobResponseIdentifier"] = bannerView.responseInfo.responseIdentifier;
+      networkInfo[@"adNetworkClassName"] = bannerView.responseInfo.adNetworkClassName;
   }
 
   [[NSNotificationCenter defaultCenter] postNotificationName:@"AdDidLoadForAdMob"
