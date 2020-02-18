@@ -14,7 +14,8 @@
 #import "MPLogging.h"
 #endif
 
-#import "DependencyInjector.h"
+@import Common;
+
 #import "ASAdTracker.h"
 
 @interface MPGoogleAdMobBannerCustomEvent () <GADBannerViewDelegate>

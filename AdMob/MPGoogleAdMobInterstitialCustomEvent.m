@@ -14,7 +14,8 @@
 #endif
 #import <CoreLocation/CoreLocation.h>
 
-#import "DependencyInjector.h"
+@import Common;
+
 #import "ASAdTracker.h"
 
 @interface MPGoogleAdMobInterstitialCustomEvent () <GADInterstitialDelegate>

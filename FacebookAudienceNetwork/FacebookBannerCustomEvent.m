@@ -5,9 +5,10 @@
 //  Copyright (c) 2014 MoPub. All rights reserved.
 //
 
+@import Common;
+
 #import <FBAudienceNetwork/FBAudienceNetwork.h>
 #import "FacebookBannerCustomEvent.h"
-#import "DependencyInjector.h"
 #import "ASAdTracker.h"
 #import "FacebookAdapterConfiguration.h"
 
