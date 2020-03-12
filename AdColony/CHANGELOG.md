@@ -1,4 +1,18 @@
 ## Changelog
+  * 4.1.4.0
+    * This version of the adapters has been certified with AdColony 4.1.4.
+
+  * 4.1.3.0
+    * This version of the adapters has been certified with AdColony 4.1.3.
+    * Log the AdColony zone id in ad lifecycle events.
+
+  * 4.1.2.1
+    * Add support for banners (introduced in AdColony 4.1.0).
+    * Move AdColony parameters handling logic to `AdColonyAdapterConfiguration`.
+
+  * 4.1.2.0
+    * This version of the adapters has been certified with AdColony 4.1.2 and is compatible with iOS 13.
+  
   * 3.3.8.1.2
     * Stop implementing deprecated request API.
 

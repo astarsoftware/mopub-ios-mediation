@@ -1,6 +1,8 @@
 #import "MPVerizonRewardedVideoCustomEvent.h"
 #import "MPVerizonInterstitialCustomEvent.h"
+#if __has_include("MoPub.h")
 #import "MPLogging.h"
+#endif
 #import <VerizonAdsStandardEdition/VerizonAdsStandardEdition.h>
 #import <VerizonAdsInterstitialPlacement/VASInterstitialAd.h>
 #import <VerizonAdsInterstitialPlacement/VASInterstitialAdFactory.h>
@@ -76,10 +78,26 @@ static NSString *const kMoPubVASAdapterVideoCompleteEventId = @"onVideoComplete"
         return;
     }
     
+    [VerizonAdapterConfiguration setCachedInitializationParameters:info];
+    
     [VASAds sharedInstance].locationEnabled = [MoPub sharedInstance].locationUpdatesEnabled;
     
     VASRequestMetadataBuilder *metaDataBuilder = [[VASRequestMetadataBuilder alloc] init];
-    [metaDataBuilder setAppMediator:VerizonAdapterConfiguration.appMediator];
+    metaDataBuilder.mediator = VerizonAdapterConfiguration.mediator;
+    
+    if (adMarkup.length > 0) {
+        NSError *error = [VASErrorInfo errorWithDomain:kMoPubVASAdapterErrorDomain
+                                                  code:MoPubVASAdapterErrorNotInitialized
+                                                   who:kMoPubVASAdapterErrorWho
+                                           description:[NSString stringWithFormat:@"Advanced Bidding for rewarded vide placements is not supported at this time. serverExtras key \" %@ \" should have no value.", kMoPubServerExtrasAdContent]
+                                            underlying:nil];
+        
+        MPLogAdEvent([MPLogEvent adLoadFailedForAdapter:NSStringFromClass(self.class) error:error], self.siteId);
+        [self.delegate rewardedVideoDidFailToLoadAdForCustomEvent:self error:error];
+        
+        return;
+    }
+    
     self.interstitialAdFactory = [[VASInterstitialAdFactory alloc] initWithPlacementId:placementId vasAds:[VASAds sharedInstance] delegate:self];
     [self.interstitialAdFactory setRequestMetadata:metaDataBuilder.build];
     
@@ -140,7 +158,7 @@ static NSString *const kMoPubVASAdapterVideoCompleteEventId = @"onVideoComplete"
 
 - (NSString *)version
 {
-    return VerizonAdapterConfiguration.appMediator;
+    return VerizonAdapterConfiguration.mediator;
 }
 
 - (void)interstitialAdClicked:(nonnull VASInterstitialAd *)interstitialAd

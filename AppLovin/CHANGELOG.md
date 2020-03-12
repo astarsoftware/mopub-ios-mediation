@@ -1,4 +1,30 @@
 ## Changelog
+   * 6.11.5.0
+     * This version of the adapters has been certified with AppLovin SDK 6.11.5 and MoPub SDK 5.11.0.
+   
+   * 6.11.4.0
+     * This version of the adapters has been certified with AppLovin SDK 6.11.4.
+
+   * 6.11.3.0
+     * This version of the adapters has been certified with AppLovin SDK 6.11.3.
+
+   * 6.11.1.0
+     * This version of the adapters has been certified with AppLovin SDK 6.11.1.
+
+   * 6.11.0.0
+     * This version of the adapters has been certified with AppLovin SDK 6.11.0.
+  
+   * 6.10.2.0
+     * This version of the adapters has been certified with AppLovin SDK 6.10.2.
+     * Fix compiler warnings.
+
+   * 6.10.1.0
+     * This version of the adapters has been certified with AppLovin SDK 6.10.1.
+
+   * 6.10.0.0
+     * This version of the adapters has been certified with AppLovin SDK 6.10.0.
+     * Remove the ability to test and query test mode as it was deprecated in v6.10.0 of the AppLovin SDK.
+
    * 6.9.5.0
      * This version of the adapters has been certified with AppLovin SDK 6.9.5.
 

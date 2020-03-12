@@ -13,8 +13,7 @@
     #import "MoPub.h"
 #endif
 #import "VungleInstanceMediationSettings.h"
-
-static NSString *const VungleAdapterVersion = @"6.4.5.0";
+#import "VungleAdapterConfiguration.h"
 
 NSString *const kVungleAppIdKey = @"appId";
 NSString *const kVunglePlacementIdKey = @"pid";
@@ -33,6 +32,9 @@ static NSString *const kVungleBannerDelegateKey = @"bannerDelegate";
 static NSString *const kVungleBannerDelegateStateKey = @"bannerState";
 
 const CGSize kVNGMRECSize = {.width = 300.0f, .height = 250.0f};
+const CGSize kVNGBannerSize = {.width = 320.0f, .height = 50.0f};
+const CGSize kVNGShortBannerSize = {.width = 300.0f, .height = 50.0f};
+const CGSize kVNGLeaderboardBannerSize = {.width = 728.0f, .height = 90.0f};
 
 typedef NS_ENUM(NSUInteger, SDKInitializeState) {
     SDKInitializeStateNotInitialized,
@@ -106,6 +108,7 @@ typedef NS_ENUM(NSUInteger, BannerRouterDelegateState) {
 
 - (void)initializeSdkWithInfo:(NSDictionary *)info {
     NSString *appId = [info objectForKey:kVungleAppIdKey];
+
     if (!self.vungleAppID) {
         self.vungleAppID = appId;
     }
@@ -113,13 +116,14 @@ typedef NS_ENUM(NSUInteger, BannerRouterDelegateState) {
     dispatch_once(&vungleInitToken, ^{
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundeclared-selector"
-        [[VungleSDK sharedSDK] performSelector:@selector(setPluginName:version:) withObject:@"mopub" withObject:VungleAdapterVersion];
+        [[VungleSDK sharedSDK] performSelector:@selector(setPluginName:version:) withObject:@"mopub" withObject:[[[VungleAdapterConfiguration alloc] init] adapterVersion]];
 #pragma clang diagnostic pop
         
         self.sdkInitializeState = SDKInitializeStateInitializing;
         dispatch_async(dispatch_get_main_queue(), ^{
             NSError * error = nil;
-            
+            // Disable refresh functionality for all banners
+            [[VungleSDK sharedSDK] disableBannerRefresh];
             [[VungleSDK sharedSDK] startWithAppId:appId error:&error];
             [[VungleSDK sharedSDK] setDelegate:self];
             [[VungleSDK sharedSDK] setNativeAdsDelegate:self];
@@ -211,17 +215,19 @@ typedef NS_ENUM(NSUInteger, BannerRouterDelegateState) {
 - (void)requestBannerAdWithCustomEventInfo:(NSDictionary *)info size:(CGSize)size delegate:(id<VungleRouterDelegate>)delegate {
     [self collectConsentStatusFromMoPub];
     
-    // Verify if PlacementID is nil (first MREC request) or PlacementID is the same one requested
     if (self.bannerDelegates.count > 0) {
         if (self.bannerPlacementID != nil && ![[info objectForKey:kVunglePlacementIdKey] isEqualToString:self.bannerPlacementID]) {
             
-            MPLogInfo(@"A banner ad type has been already instantiated. Multiple banner ads are not supported with Vungle iOS SDK version %@ and adapter version %@.", VungleSDKVersion, VungleAdapterVersion);
+            MPLogInfo(@"A banner ad type has been already instantiated. Multiple banner ads are not supported with Vungle iOS SDK version %@ and adapter version %@.", VungleSDKVersion, [[[VungleAdapterConfiguration alloc] init] adapterVersion]);
             [delegate vungleAdDidFailToLoad:nil];
             return;
         }
     }
     
-    if ([self validateInfoData:info] && CGSizeEqualToSize(size, kVNGMRECSize)) {
+    if ([self validateInfoData:info] && (CGSizeEqualToSize(size, kVNGMRECSize) ||
+                                         CGSizeEqualToSize(size, kVNGBannerSize) ||
+                                         CGSizeEqualToSize(size, kVNGLeaderboardBannerSize) ||
+                                         CGSizeEqualToSize(size, kVNGShortBannerSize))) {
         self.bannerPlacementID = [info objectForKey:kVunglePlacementIdKey];
         self.isInvalidatedBannerForPlacementID = NO;
         
@@ -236,9 +242,10 @@ typedef NS_ENUM(NSUInteger, BannerRouterDelegateState) {
             }
         } else if (self.sdkInitializeState == SDKInitializeStateInitialized) {
             NSString *placementID = [info objectForKey:kVunglePlacementIdKey];
-            [self requestBannerMrecAdWithPlacementID:placementID delegate:delegate];
+            [self requestBannerAdWithPlacementID:placementID size:size delegate:delegate];
         }
     } else {
+        MPLogError(@"A banner ad type was requested with the size which Vungle SDK doesn't support.");
         [delegate vungleAdDidFailToLoad:nil];
     }
 }
@@ -254,15 +261,15 @@ typedef NS_ENUM(NSUInteger, BannerRouterDelegateState) {
         MPLogInfo(@"Vungle: Start to load an ad for Placement ID :%@", placementId);
     } else {
         if (error) {
-            MPLogInfo(@"Vungle: Unable to load an ad for Placement ID :%@, Error %@", placementId, error);
+            MPLogError(@"Vungle: Unable to load an ad for Placement ID :%@, Error %@", placementId, error);
         }
         [delegate vungleAdDidFailToLoad:error];
     }
 }
 
-- (void)requestBannerMrecAdWithPlacementID:(NSString *)placementID delegate:(id<VungleRouterDelegate>)delegate {
+- (void)requestBannerAdWithPlacementID:(NSString *)placementID size:(CGSize)size delegate:(id<VungleRouterDelegate>)delegate {
     NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
-    if ([[VungleSDK sharedSDK]  isAdCachedForPlacementID:placementID]) {
+    if ([self isBannerAdAvailableForPlacementId:placementID size:size]) {
         [delegate vungleAdDidLoad];
         
         [dictionary setObject:delegate forKey:kVungleBannerDelegateKey];
@@ -274,14 +281,24 @@ typedef NS_ENUM(NSUInteger, BannerRouterDelegateState) {
         [self.bannerDelegates addObject:dictionary];
         
         NSError *error = nil;
-        
-        if ([[VungleSDK sharedSDK] loadPlacementWithID:placementID error:&error]) {
-            MPLogInfo(@"Vungle: Start to load an ad for Placement ID :%@", placementID);
-        } else {
-            if (error) {
-                MPLogInfo(@"Vungle: Unable to load an ad for Placement ID :%@, Error %@", placementID, error);
+        if (CGSizeEqualToSize(size, kVNGMRECSize)) {
+            if ([[VungleSDK sharedSDK] loadPlacementWithID:placementID error:&error]) {
+                MPLogInfo(@"Vungle: Start to load an ad for Placement ID :%@", placementID);
+            } else {
+                [self requestBannerAdFailedWithError:error
+                                         placementID:placementID
+                                            delegate:delegate];
             }
-            [delegate vungleAdDidFailToLoad:error];
+        } else {
+            if ([[VungleSDK sharedSDK] loadPlacementWithID:placementID withSize:[self getVungleBannerAdSizeType:size] error:&error]) {
+                MPLogInfo(@"Vungle: Start to load an ad for Placement ID :%@", placementID);
+            } else {
+                if ((error) && (error.code != VungleSDKResetPlacementForDifferentAdSize)) {
+                    [self requestBannerAdFailedWithError:error
+                                             placementID:placementID
+                                                delegate:delegate];
+                }
+            }
         }
     }
 }
@@ -290,13 +307,21 @@ typedef NS_ENUM(NSUInteger, BannerRouterDelegateState) {
     return [[VungleSDK sharedSDK] isAdCachedForPlacementID:placementId];
 }
 
+- (BOOL)isBannerAdAvailableForPlacementId:(NSString *)placementId size:(CGSize)size{
+    if (CGSizeEqualToSize(size, kVNGMRECSize)) {
+        return [[VungleSDK sharedSDK] isAdCachedForPlacementID:placementId];
+    }
+
+    return [[VungleSDK sharedSDK] isAdCachedForPlacementID:placementId withSize:[self getVungleBannerAdSizeType:size]];
+}
+
 - (void)presentInterstitialAdFromViewController:(UIViewController *)viewController options:(NSDictionary *)options forPlacementId:(NSString *)placementId {
     if (!self.isAdPlaying && [self isAdAvailableForPlacementId:placementId]) {
         self.isAdPlaying = YES;
-        NSError *error;
+        NSError *error = nil;
         BOOL success = [[VungleSDK sharedSDK] playAd:viewController options:options placementID:placementId error:&error];
         if (!success) {
-            [[self.delegatesDict objectForKey:placementId] vungleAdDidFailToPlay:nil];
+            [[self.delegatesDict objectForKey:placementId] vungleAdDidFailToPlay:error ?: [NSError errorWithCode:MOPUBErrorVideoPlayerFailedToPlay localizedDescription:@"Failed to play Vungle Interstitial Ad."]];
             self.isAdPlaying = NO;
         }
     } else {
@@ -332,10 +357,11 @@ typedef NS_ENUM(NSUInteger, BannerRouterDelegateState) {
         
         options[VunglePlayAdOptionKeyOrientations] = orientations;
         
-        BOOL success = [[VungleSDK sharedSDK] playAd:viewController options:options placementID:placementId error:nil];
+        NSError *error = nil;
+        BOOL success = [[VungleSDK sharedSDK] playAd:viewController options:options placementID:placementId error:&error];
         
         if (!success) {
-            [[self.delegatesDict objectForKey:placementId] vungleAdDidFailToPlay:nil];
+            [[self.delegatesDict objectForKey:placementId] vungleAdDidFailToPlay:error ?: [NSError errorWithCode:MOPUBErrorVideoPlayerFailedToPlay localizedDescription:@"Failed to play Vungle Rewarded Video Ad."]];
             self.isAdPlaying = NO;
         }
     } else {
@@ -344,10 +370,10 @@ typedef NS_ENUM(NSUInteger, BannerRouterDelegateState) {
     }
 }
 
-- (UIView *)renderBannerAdInView:(UIView *)bannerView options:(NSDictionary *)options forPlacementID:(NSString *)placementID {
+- (UIView *)renderBannerAdInView:(UIView *)bannerView options:(NSDictionary *)options forPlacementID:(NSString *)placementID size:(CGSize)size {
     NSError *bannerError = nil;
     
-    if ([[VungleSDK sharedSDK] isAdCachedForPlacementID:placementID]) {
+    if ([self isBannerAdAvailableForPlacementId:placementID size:size]) {
         BOOL success = [[VungleSDK sharedSDK] addAdViewToView:bannerView withOptions:options placementID:placementID error:&bannerError];
         
         if (success) {
@@ -355,15 +381,13 @@ typedef NS_ENUM(NSUInteger, BannerRouterDelegateState) {
         }
     } else {
         bannerError = [NSError errorWithDomain:NSStringFromClass([self class]) code:8769 userInfo:@{ NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Ad not cached for placement %@", placementID]}];
-        
     }
     
-    MPLogInfo(@"Banner loading error: %@", bannerError.localizedDescription);
+    MPLogError(@"Banner loading error: %@", bannerError.localizedDescription);
     return nil;
 }
 
-- (void)completeBannerAdViewForPlacementID:(NSString *)placementID
-{
+- (void)completeBannerAdViewForPlacementID:(NSString *)placementID {
     if (placementID) {
         MPLogInfo(@"Vungle: Triggering an ad completion call for %@", placementID);
         
@@ -460,7 +484,8 @@ typedef NS_ENUM(NSUInteger, BannerRouterDelegateState) {
         
         if ([[delegateInstance getPlacementID] isEqualToString:self.bannerPlacementID]) {
             NSString *id = [delegateInstance getPlacementID];
-            [self requestBannerMrecAdWithPlacementID:id delegate:delegateInstance];
+            CGSize size = [delegateInstance getBannerSize];
+            [self requestBannerAdWithPlacementID:id size:size delegate:delegateInstance];
         } else {
             if (![self.delegatesDict objectForKey:key]) {
                 [self.delegatesDict setObject:delegateInstance forKey:key];
@@ -479,6 +504,27 @@ typedef NS_ENUM(NSUInteger, BannerRouterDelegateState) {
     }
     
     [self.waitingListDict removeAllObjects];
+}
+
+- (void)requestBannerAdFailedWithError:(NSError *)error
+                           placementID:(NSString *)placementID
+                              delegate:(id<VungleRouterDelegate>)delegate {
+    if (error) {
+        MPLogError(@"Vungle: Unable to load an ad for Placement ID :%@, Error %@", placementID, error);
+    }
+    [delegate vungleAdDidFailToLoad:error];
+}
+
+- (VungleAdSize)getVungleBannerAdSizeType:(CGSize)size {
+    if (CGSizeEqualToSize(size, kVNGBannerSize)) {
+        return VungleAdSizeBanner;
+    } else if (CGSizeEqualToSize(size, kVNGShortBannerSize)) {
+        return VungleAdSizeBannerShort;
+    } else if (CGSizeEqualToSize(size, kVNGLeaderboardBannerSize)) {
+        return VungleAdSizeBannerLeaderboard;
+    }
+    
+    return VungleAdSizeUnknown;
 }
 
 #pragma mark - VungleSDKDelegate Methods
