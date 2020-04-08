@@ -1,4 +1,16 @@
 ## Changelog
+ * 6.1.2.0.1
+    * MoPub now collects GDPR consent on behalf of Mintegral.
+
+ * 6.1.2.0.0
+    * This version of the adapters has been certified with Mintegral 6.1.2.0 and MoPub 5.11.0.
+
+ * 6.1.1.0.1
+    * Import `<MoPub/MoPub.h>` for banner, interstitial, and rewarded video adapter classes. 
+
+ * 6.1.1.0.0
+    * This version of the adapters has been certified with Mintegral 6.1.1.0 and MoPub 5.11.0.
+
  * 6.1.0.0.0
     * This version of the adapters has been certified with Mintegral 6.1.0.0.
 
