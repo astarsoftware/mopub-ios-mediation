@@ -142,6 +142,18 @@
             MPLogAdEvent([MPLogEvent adLoadSuccessForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
             MPLogAdEvent([MPLogEvent adShowAttemptForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
             MPLogAdEvent([MPLogEvent adShowSuccessForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
+            
+            NSMutableDictionary *networkInfo = [NSMutableDictionary dictionary];
+            if(inlineAd.creativeInfo.creativeId) {
+                networkInfo[@"vzCreativeId"] = inlineAd.creativeInfo.creativeId;
+            }
+            if(inlineAd.creativeInfo.demandSource) {
+                networkInfo[@"vzDemandSource"] = inlineAd.creativeInfo.demandSource;
+            }
+
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"AdDidLoadForVerizon"
+                                                                object:nil
+                                                              userInfo:networkInfo];
         }
     });
     

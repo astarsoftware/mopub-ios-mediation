@@ -149,6 +149,17 @@
             strongSelf.interstitialAd = interstitialAd;
             [strongSelf.delegate interstitialCustomEvent:strongSelf didLoadAd:interstitialAd];
             
+            NSMutableDictionary *networkInfo = [NSMutableDictionary dictionary];
+            if(interstitialAd.creativeInfo.creativeId) {
+                networkInfo[@"vzCreativeId"] = interstitialAd.creativeInfo.creativeId;
+            }
+            if(interstitialAd.creativeInfo.demandSource) {
+                networkInfo[@"vzDemandSource"] = interstitialAd.creativeInfo.demandSource;
+            }
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"AdDidLoadForVerizon"
+                                                                object:nil
+                                                              userInfo:networkInfo];
+            
             MPLogAdEvent([MPLogEvent adLoadSuccessForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
         }
     });
