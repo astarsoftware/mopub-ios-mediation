@@ -38,7 +38,7 @@
     
     NSString *siteId = info[kMoPubVASAdapterSiteId];
     NSString *placementId = info[kMoPubVASAdapterPlacementId];
-
+    
     if (siteId.length == 0 || placementId.length == 0)
     {
         NSError *error = [VASErrorInfo errorWithDomain:kMoPubVASAdapterErrorDomain
@@ -66,22 +66,39 @@
         return;
     }
     
+    [VerizonAdapterConfiguration setCachedInitializationParameters:info];
     VASInlineAdSize *requestedSize = [[VASInlineAdSize alloc] initWithWidth:size.width height:size.height];
     
     [VASAds sharedInstance].locationEnabled = [MoPub sharedInstance].locationUpdatesEnabled;
     
-    VASRequestMetadataBuilder *metaDataBuilder = [[VASRequestMetadataBuilder alloc] init];
-    [metaDataBuilder setAppMediator:VerizonAdapterConfiguration.appMediator];
     self.inlineFactory = [[VASInlineAdFactory alloc] initWithPlacementId:placementId adSizes:@[requestedSize] vasAds:[VASAds sharedInstance] delegate:self];
-    [self.inlineFactory setRequestMetadata:metaDataBuilder.build];
     
     VASBid *bid = [MPVerizonBidCache.sharedInstance bidForPlacementId:placementId];
     
     if (bid) {
         [self.inlineFactory loadBid:bid inlineAdDelegate:self];
     } else {
+        VASRequestMetadataBuilder *metadataBuilder = [[VASRequestMetadataBuilder alloc] initWithRequestMetadata:[VASAds sharedInstance].requestMetadata];
+        metadataBuilder.mediator = VerizonAdapterConfiguration.mediator;
+            
+        MPLogInfo(@"%@: %@", kMoPubRequestMetadataAdContent, adMarkup);
+        
+        if (adMarkup.length > 0) {
+            NSMutableDictionary<NSString *, id> *placementData =
+            [NSMutableDictionary dictionaryWithDictionary:
+             @{
+                 kMoPubRequestMetadataAdContent : adMarkup,
+                 @"overrideWaterfallProvider"  : @"waterfallprovider/sideloading"
+             }
+             ];
+            
+            [metadataBuilder setPlacementData:placementData];
+        }
+        
+        [self.inlineFactory setRequestMetadata:metadataBuilder.build];
         [self.inlineFactory load:self];
     }
+    
     MPLogAdEvent([MPLogEvent adLoadAttemptForAdapter:NSStringFromClass(self.class) dspCreativeId:nil dspName:nil], [self getAdNetworkId]);
 }
 
@@ -125,6 +142,18 @@
             MPLogAdEvent([MPLogEvent adLoadSuccessForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
             MPLogAdEvent([MPLogEvent adShowAttemptForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
             MPLogAdEvent([MPLogEvent adShowSuccessForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
+            
+            NSMutableDictionary *networkInfo = [NSMutableDictionary dictionary];
+            if(inlineAd.creativeInfo.creativeId) {
+                networkInfo[@"vzCreativeId"] = inlineAd.creativeInfo.creativeId;
+            }
+            if(inlineAd.creativeInfo.demandSource) {
+                networkInfo[@"vzDemandSource"] = inlineAd.creativeInfo.demandSource;
+            }
+
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"AdDidLoadForVerizon"
+                                                                object:nil
+                                                              userInfo:networkInfo];
         }
     });
     
@@ -199,12 +228,12 @@
 
 - (void)inlineAdDidResize:(VASInlineAdView *)inlineAd {}
 
-- (nullable UIViewController *)adPresentingViewController
+- (nullable UIViewController *)inlineAdPresentingViewController
 {
     return [self.delegate viewControllerForPresentingModalView];
 }
 
-- (void)inlineAdEvent:(VASInlineAdView *)inlineAd source:(NSString *)source eventId:(NSString *)eventId arguments:(NSDictionary<NSString *, id> *)arguments {}
+- (void)inlineAd:(nonnull VASInlineAdView *)inlineAd event:(nonnull NSString *)eventId source:(nonnull NSString *)source arguments:(nonnull NSDictionary<NSString *,id> *)arguments {}
 
 - (void)inlineAdDidRefresh:(nonnull VASInlineAdView *)inlineAd {}
 
@@ -215,22 +244,22 @@
                        completion:(nonnull VASBidRequestCompletionHandler)completion
 {
     VASRequestMetadataBuilder *metaDataBuilder = [[VASRequestMetadataBuilder alloc] init];
-    [metaDataBuilder setAppMediator:VerizonAdapterConfiguration.appMediator];
+    metaDataBuilder.mediator = VerizonAdapterConfiguration.mediator;
+    
     [VASInlineAdFactory requestBidForPlacementId:placementId
                                          adSizes:adSizes
                                  requestMetadata:metaDataBuilder.build
                                           vasAds:[VASAds sharedInstance]
                                       completion:^(VASBid * _Nullable bid, VASErrorInfo * _Nullable errorInfo) {
-                                          dispatch_async(dispatch_get_main_queue(), ^{
-                                              if (bid) {
-                                                  [MPVerizonBidCache.sharedInstance storeBid:bid
-                                                                              forPlacementId:placementId
-                                                                                   untilDate:[NSDate dateWithTimeIntervalSinceNow:kMoPubVASAdapterSATimeoutInterval]];
-                                              }
-                                              completion(bid,errorInfo);
-                                          });
-                                      }];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (bid) {
+                [MPVerizonBidCache.sharedInstance storeBid:bid
+                                            forPlacementId:placementId
+                                                 untilDate:[NSDate dateWithTimeIntervalSinceNow:kMoPubVASAdapterSATimeoutInterval]];
+            }
+            completion(bid,errorInfo);
+        });
+    }];
 }
-
 
 @end

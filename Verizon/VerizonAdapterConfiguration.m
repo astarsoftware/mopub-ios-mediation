@@ -1,8 +1,9 @@
 #import <VerizonAdsStandardEdition/VerizonAdsStandardEdition.h>
 #import <VerizonAdsCore/VerizonAdsCore.h>
+#import <CoreTelephony/CTCarrier.h>
 #import "VerizonAdapterConfiguration.h"
 
-NSString * const kMoPubVASAdapterVersion = @"1.2.1.0";
+NSString * const kMoPubVASAdapterVersion = @"1.5.0.0";
 
 NSString * const kMoPubVASAdapterErrorWho = @"MoPubVASAdapter";
 NSString * const kMoPubVASAdapterPlacementId = @"placementId";
@@ -11,11 +12,29 @@ NSString * const kMoPubVASAdapterSiteId = @"siteId";
 NSErrorDomain const kMoPubVASAdapterErrorDomain = @"com.verizon.ads.mopubvasadapter.ErrorDomain";
 NSTimeInterval kMoPubVASAdapterSATimeoutInterval = 600;
 
+NSString * const kMoPubVASNetworkName   = @"verizon";
+NSString * const kMoPubServerExtrasAdContent     = @"adMarkup";
+NSString * const kMoPubRequestMetadataAdContent  = @"adContent";
+
+static NSString * const kVASBiddingTokenKey     = @"biddingToken";
+static NSString * const kVASDefaultBiddingToken = @"eJyrVkrNK1OyqlYqTsn2zEvLBzFTUzJLMvPzPFOUrJSKSxLzUhKLUnShgrqGeqZ6Bko6SmWpRcVAPlCJIZBfW1sLAK6jGGM=";
+
+@interface VerizonAdapterConfiguration ()
+
+@end
+
 @implementation VerizonAdapterConfiguration
 
-+ (NSString *)appMediator
++ (NSString *)mediator
 {
-    return [NSString stringWithFormat:@"MoPubVAS-%@", kMoPubVASAdapterVersion];
+    static NSString *_appMediator = nil;
+    static dispatch_once_t onceToken;
+    
+    dispatch_once(&onceToken, ^{
+        _appMediator = [NSString stringWithFormat:@"MoPubVAS-%@", kMoPubVASAdapterVersion];
+    });
+    
+    return _appMediator;
 }
 
 + (void)updateInitializationParameters:(NSDictionary *)parameters {}
@@ -23,6 +42,9 @@ NSTimeInterval kMoPubVASAdapterSATimeoutInterval = 600;
 - (void)initializeNetworkWithConfiguration:(NSDictionary<NSString *, id> * _Nullable)configuration complete:(void(^ _Nullable)(NSError * _Nullable))complete
 {
     NSString *siteId = configuration[kMoPubVASAdapterSiteId];
+    if (siteId.length == 0) {
+        siteId = [VerizonAdapterConfiguration cachedInitializationParameters][kMoPubVASAdapterSiteId];
+    }
     if (siteId.length > 0) {
         dispatch_async(dispatch_get_main_queue(), ^{
             if ([VASStandardEdition initializeWithSiteId:siteId]) {
@@ -52,22 +74,24 @@ NSTimeInterval kMoPubVASAdapterSATimeoutInterval = 600;
 
 - (NSString *)biddingToken
 {
-    return nil;
+    return [VASAds.sharedInstance.configuration stringForDomain:kDomainVASAds
+                                                            key:kVASBiddingTokenKey
+                                                    withDefault:kVASDefaultBiddingToken];
 }
 
 - (NSString *)moPubNetworkName
 {
-    return @"Verizon";
+    return kMoPubVASNetworkName;
 }
 
 - (NSString *)networkSdkVersion
 {
-    NSString *editionName = [[[VASAds sharedInstance] configuration] stringForDomain:@"com.verizon.ads"
-                                                                                 key:@"editionName"
+    NSString *editionName = [[[VASAds sharedInstance] configuration] stringForDomain:kDomainVASAds
+                                                                                 key:kVASEditionNameKey
                                                                          withDefault:nil];
-
-    NSString *editionVersion = [[[VASAds sharedInstance] configuration] stringForDomain:@"com.verizon.ads"
-                                                                                    key:@"editionVersion"
+    
+    NSString *editionVersion = [[[VASAds sharedInstance] configuration] stringForDomain:kDomainVASAds
+                                                                                    key:kVASEditionVersionKey
                                                                             withDefault:nil];
     if (editionName.length > 0 && editionVersion.length > 0) {
         return [NSString stringWithFormat:@"%@-%@", editionName, editionVersion];

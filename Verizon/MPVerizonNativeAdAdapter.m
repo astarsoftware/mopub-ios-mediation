@@ -1,8 +1,10 @@
 #import <VerizonAdsNativePlacement/VerizonAdsNativePlacement.h>
 #import <VerizonAdsVerizonNativeController/VerizonAdsVerizonNativeController.h>
 #import "MPVerizonNativeAdAdapter.h"
+#if __has_include("MoPub.h")
 #import "MPNativeAdConstants.h"
 #import "MPLogging.h"
+#endif
 
 NSString * const kVASDisclaimerKey = @"vasdisclaimer";
 NSString * const kVASVideoViewKey = @"vasvideoview";
@@ -205,7 +207,7 @@ static NSString * const kVideoCompId        = @"video";
     });
 }
 
-- (void)nativeAdEvent:(nonnull VASNativeAd *)nativeAd source:(nonnull NSString *)source eventId:(nonnull NSString *)eventId arguments:(nonnull NSDictionary<NSString *,id> *)arguments
+- (void)nativeAd:(nonnull VASNativeAd *)nativeAd event:(nonnull NSString *)eventId source:(nonnull NSString *)source arguments:(nonnull NSDictionary<NSString *,id> *)arguments
 {
     MPLogTrace(@"VAS nativeAdEvent: %@, source: %@, eventId: %@, arguments: %@", nativeAd, source, eventId, arguments);
 }
