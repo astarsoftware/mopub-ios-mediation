@@ -3,9 +3,8 @@
 #elif __has_include(<MoPubSDKFramework/MoPub.h>)
     #import <MoPubSDKFramework/MoPub.h>
 #else
-    #import "MPNativeCustomEvent.h"
+    #import "MPFullscreenAdAdapter.h"
 #endif
 
-@interface MintegralNativeCustomEvent   : MPNativeCustomEvent
-
+@interface PangleRewardedVideoCustomEvent : MPFullscreenAdAdapter <MPThirdPartyFullscreenAdAdapter>
 @end
