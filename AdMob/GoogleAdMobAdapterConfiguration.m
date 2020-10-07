@@ -52,9 +52,7 @@ typedef NS_ENUM(NSInteger, AdMobAdapterErrorCode) {
 }
 
 - (NSString *)networkSdkVersion {
-    return @"7.57.0";
-    //TODO: Looks like current version of AdMob doesn't have this property which was introduced in 7.64.0 which came out on 8.11.2020 to support iOS 14... add this back in when we upgrade
-    //    return GADMobileAds.sharedInstance.sdkVersion;
+    return GADMobileAds.sharedInstance.sdkVersion;
 }
 
 - (void)initializeNetworkWithConfiguration:(NSDictionary<NSString *, id> *)configuration
