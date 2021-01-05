@@ -44,6 +44,7 @@
     
     self.appId = [info objectForKey:kPangleAppIdKey];
     if (BUCheckValidString(self.appId)) {
+        [PangleAdapterConfiguration pangleSDKInitWithAppId:self.appId];
         [PangleAdapterConfiguration updateInitializationParameters:info];
     }
     
@@ -65,11 +66,11 @@
     MPLogAdEvent([MPLogEvent adLoadAttemptForAdapter:NSStringFromClass(self.class) dspCreativeId:nil dspName:nil], [self getAdNetworkId]);
     
     if (hasAdMarkup) {
-        MPLogInfo(@"Load Pangle interstitial ad markup for Advanced Bidding");
+        MPLogInfo(@"Loading Pangle interstitial ad markup for Advanced Bidding");
 
         [self.fullScreenVideo setMopubAdMarkUp:adMarkup];
     } else {
-        MPLogInfo(@"Load Pangle interstitial ad");
+        MPLogInfo(@"Loading Pangle interstitial ad");
 
         [self.fullScreenVideo loadAdData];
     }
@@ -92,10 +93,6 @@
 
 - (BOOL)enableAutomaticImpressionAndClickTracking {
     return NO;
-}
-
-- (void)updateAppId{
-    [BUAdSDKManager setAppID:self.appId];
 }
 
 #pragma mark - BUFullscreenVideoAdDelegate - Full Screen Video
@@ -134,6 +131,12 @@
     MPLogAdEvent([MPLogEvent adDidDisappearForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
     
     [self.delegate fullscreenAdAdapterAdDidDisappear:self];
+    
+    // Signal that the fullscreen ad is closing and the state should be reset.
+    // `fullscreenAdAdapterAdDidDismiss:` was introduced in MoPub SDK 5.15.0.
+    if ([self.delegate respondsToSelector:@selector(fullscreenAdAdapterAdDidDismiss:)]) {
+        [self.delegate fullscreenAdAdapterAdDidDismiss:self];
+    }
 }
 
 - (void)fullscreenVideoAdDidClick:(BUFullscreenVideoAd *)fullscreenVideoAd {
@@ -147,9 +150,6 @@
     MPLogAdEvent([MPLogEvent adLoadFailedForAdapter:NSStringFromClass(self.class) error:error], [self getAdNetworkId]);
     
     [self.delegate fullscreenAdAdapter:self didFailToLoadAdWithError:error];
-    if (BUCheckValidString(self.appId) && error.code == BUUnionAppSiteRelError) {
-        [self updateAppId];
-    }
 }
 
 - (void)fullscreenVideoAdDidPlayFinish:(BUFullscreenVideoAd *)fullscreenVideoAd didFailWithError:(NSError *)error {

@@ -28,6 +28,9 @@
 @dynamic delegate;
 @dynamic localExtras;
 
+CGFloat adWidth;
+CGFloat adHeight;
+
 - (id)init {
   self = [super init];
   if (self) {
@@ -37,13 +40,17 @@
   return self;
 }
 
+- (BOOL)enableAutomaticImpressionAndClickTracking {
+    return NO;
+}
+
 - (void)dealloc {
   self.adBannerView.delegate = nil;
 }
 
 - (void)requestAdWithSize:(CGSize)size adapterInfo:(NSDictionary *)info adMarkup:(NSString *)adMarkup {
-  CGFloat adWidth = size.width;
-  CGFloat adHeight = size.height;
+  adWidth = size.width;
+  adHeight = size.height;
     
   if (adWidth <= 0.0 || adHeight <= 0.0) {
     NSString *failureReason = @"Google AdMob banner failed to load due to invalid ad width and/or height.";
@@ -101,21 +108,37 @@
 #pragma mark GADBannerViewDelegate methods
 
 - (void)adViewDidReceiveAd:(GADBannerView *)bannerView {
-  MPLogAdEvent([MPLogEvent adLoadSuccessForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
-  MPLogAdEvent([MPLogEvent adShowAttemptForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
-  MPLogAdEvent([MPLogEvent adShowSuccessForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
+  CGFloat receivedWidth = bannerView.adSize.size.width;
+  CGFloat receivedHeight = bannerView.adSize.size.height;
     
-  [self.delegate inlineAdAdapter:self didLoadAdWithAdView:self.adBannerView];
-    
-  NSMutableDictionary *networkInfo = [NSMutableDictionary dictionary];
-  if( bannerView.responseInfo.responseIdentifier) {
-      networkInfo[@"admobResponseIdentifier"] = bannerView.responseInfo.responseIdentifier;
-      networkInfo[@"adNetworkClassName"] = bannerView.responseInfo.adNetworkClassName;
-  }
 
-  [[NSNotificationCenter defaultCenter] postNotificationName:@"AdDidLoadForAdMob"
-                                                      object:nil
-                                                    userInfo:networkInfo];
+  if (receivedWidth > adWidth || receivedHeight > adHeight) {
+    NSString *failureReason = [NSString stringWithFormat:@"Google served an ad but it was invalidated because its size of %.0f x %.0f exceeds the publisher-specified size of %.0f x %.0f", receivedWidth, receivedHeight, adWidth, adHeight];
+    NSError *mopubError = [NSError errorWithCode:MOPUBErrorAdapterInvalid localizedDescription:failureReason];
+
+    MPLogAdEvent([MPLogEvent adLoadFailedForAdapter:NSStringFromClass(self.class) error:mopubError], [self getAdNetworkId]);
+    [self.delegate inlineAdAdapter:self didFailToLoadAdWithError:mopubError];
+  } else {
+    MPLogAdEvent([MPLogEvent adLoadSuccessForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
+    MPLogAdEvent([MPLogEvent adShowAttemptForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
+          
+    [self.delegate inlineAdAdapter:self didLoadAdWithAdView:self.adBannerView];
+    NSMutableDictionary *networkInfo = [NSMutableDictionary dictionary];
+    if( bannerView.responseInfo.responseIdentifier) {
+        networkInfo[@"admobResponseIdentifier"] = bannerView.responseInfo.responseIdentifier;
+        networkInfo[@"adNetworkClassName"] = bannerView.responseInfo.adNetworkClassName;
+    }
+
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"AdDidLoadForAdMob"
+                                                        object:nil
+                                                      userInfo:networkInfo];
+  }
+}
+
+- (void)adViewDidRecordImpression:(GADBannerView *)bannerView {
+    MPLogAdEvent([MPLogEvent adShowSuccessForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
+
+    [self.delegate inlineAdAdapterDidTrackImpression:self];
 }
 
 - (void)adView:(GADBannerView *)bannerView didFailToReceiveAdWithError:(GADRequestError *)error {
@@ -138,7 +161,7 @@
 - (void)adViewWillLeaveApplication:(GADBannerView *)bannerView {
   MPLogAdEvent([MPLogEvent adTappedForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
 
-  [self.delegate inlineAdAdapterWillLeaveApplication:self];
+  [self.delegate inlineAdAdapterDidTrackClick:self];
 }
 
 - (NSString *) getAdNetworkId {

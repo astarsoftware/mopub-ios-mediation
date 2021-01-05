@@ -48,6 +48,7 @@
     
     self.appId = [info objectForKey:kPangleAppIdKey];
     if (BUCheckValidString(self.appId)) {
+        [PangleAdapterConfiguration pangleSDKInitWithAppId:self.appId];
         [PangleAdapterConfiguration updateInitializationParameters:info];
     }
     
@@ -83,11 +84,11 @@
     self.rewardVideoAd = RewardedVideoAd;
     
     if (hasAdMarkup) {
-        MPLogInfo(@"Load Pangle rewarded video ad markup for Advanced Bidding");
+        MPLogInfo(@"Loading Pangle rewarded video ad markup for Advanced Bidding");
 
         [RewardedVideoAd setMopubAdMarkUp:adMarkup];
     } else {
-        MPLogInfo(@"Load Pangle rewarded video ad");
+        MPLogInfo(@"Loading Pangle rewarded video ad");
         
         [RewardedVideoAd loadAdData];
     }
@@ -111,10 +112,6 @@
     }
 }
 
-- (void)updateAppId{
-    [BUAdSDKManager setAppID:self.appId];
-}
-
 #pragma mark BURewardedVideoAdDelegate
 
 - (void)rewardedVideoAdDidLoad:(BURewardedVideoAd *)rewardedVideoAd {
@@ -127,10 +124,6 @@
     MPLogAdEvent([MPLogEvent adLoadFailedForAdapter:NSStringFromClass(self.class) error:error], [self getAdNetworkId]);
     
     [self.delegate fullscreenAdAdapter:self didFailToLoadAdWithError:error];
-    
-    if (BUCheckValidString(self.appId) && error.code == BUUnionAppSiteRelError) {
-        [self updateAppId];
-    }
 }
 
 - (void)rewardedVideoAdDidVisible:(BURewardedVideoAd *)rewardedVideoAd {
@@ -150,6 +143,12 @@
     
     MPLogAdEvent([MPLogEvent adDidDisappearForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
     [self.delegate fullscreenAdAdapterAdDidDisappear:self];
+    
+    // Signal that the fullscreen ad is closing and the state should be reset.
+    // `fullscreenAdAdapterAdDidDismiss:` was introduced in MoPub SDK 5.15.0.
+    if ([self.delegate respondsToSelector:@selector(fullscreenAdAdapterAdDidDismiss:)]) {
+        [self.delegate fullscreenAdAdapterAdDidDismiss:self];
+    }
 }
 
 - (void)rewardedVideoAdDidClick:(BURewardedVideoAd *)rewardedVideoAd {
@@ -183,8 +182,8 @@
     }
 }
 
-- (void)rewardedVideoAdServerRewardDidFail:(BURewardedVideoAd *)rewardedVideoAd {
-    MPLogInfo(@"Rewarded video ad server failed to reward.");
+- (void)rewardedVideoAdServerRewardDidFail:(BURewardedVideoAd *)rewardedVideoAd error:(NSError *)error {
+    MPLogInfo(@"Rewarded video ad server failed to reward: %@", error);
 }
 
 - (NSString *) getAdNetworkId {
