@@ -244,6 +244,17 @@ static NSMutableDictionary<NSString *, ALAdView *> *ALGlobalAdViews;
         [self.parentCustomEvent.delegate inlineAdAdapter: self.parentCustomEvent
                                            didLoadAdWithAdView: self.parentCustomEvent.bannerView];
         
+        NSMutableDictionary *networkInfo = [NSMutableDictionary dictionary];
+        if(ad.adIdNumber) {
+            networkInfo[@"appLovinAdUniqueId"] = ad.adIdNumber;
+        }
+        if(ad.zoneIdentifier) {
+            networkInfo[@"appLovinZoneIdentifier"] = ad.zoneIdentifier;
+        }
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"AdDidLoadForAppLovin"
+                                                            object:nil
+                                                          userInfo:networkInfo];
+        
         MPLogAdEvent([MPLogEvent adLoadSuccessForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
         MPLogAdEvent([MPLogEvent adWillAppearForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
         MPLogAdEvent([MPLogEvent adShowAttemptForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);

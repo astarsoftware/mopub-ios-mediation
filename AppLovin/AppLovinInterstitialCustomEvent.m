@@ -197,7 +197,17 @@ static NSObject *ALGlobalInterstitialAdsLock;
     
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.delegate fullscreenAdAdapterDidLoadAd:self];
-
+        
+        NSMutableDictionary *networkInfo = [NSMutableDictionary dictionary];
+        if(ad.adIdNumber) {
+            networkInfo[@"appLovinAdUniqueId"] = ad.adIdNumber;
+        }
+        if(ad.zoneIdentifier) {
+            networkInfo[@"appLovinZoneIdentifier"] = ad.zoneIdentifier;
+        }
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"AdDidLoadForAppLovin"
+                                                            object:nil
+                                                          userInfo:networkInfo];
         MPLogAdEvent([MPLogEvent adLoadSuccessForAdapter:NSStringFromClass(self.class)], [self getAdNetworkId]);
     });
 }
