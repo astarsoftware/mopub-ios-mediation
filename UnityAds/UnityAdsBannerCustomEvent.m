@@ -8,6 +8,7 @@
 #if __has_include("MoPub.h")
     #import "MPLogging.h"
 #endif
+#import "UnityAdsAdapterConfiguration.h"
 
 static NSString *const kMPUnityBannerGameId = @"gameId";
 static NSString *const kUnityAdsOptionPlacementIdKey = @"placementId";
@@ -73,6 +74,9 @@ static NSString *const kUnityAdsOptionZoneIdKey = @"zoneId";
         
         return;
     }
+
+    // Only need to cache game ID for SDK initialization
+    [UnityAdsAdapterConfiguration updateInitializationParameters:info];
     
     if (![UnityAds isInitialized]) {
         [[UnityRouter sharedRouter] initializeWithGameId:gameId withCompletionHandler:nil];
@@ -111,10 +115,10 @@ static NSString *const kUnityAdsOptionZoneIdKey = @"zoneId";
 
 #pragma mark - UnityAdsBannerDelegate
 
-- (NSError *)createErrorWith:(NSString *)description andReason:(NSString *)reaason andSuggestion:(NSString *)suggestion {
+- (NSError *)createErrorWith:(NSString *)description andReason:(NSString *)reason andSuggestion:(NSString *)suggestion {
     NSDictionary *userInfo = @{
                                NSLocalizedDescriptionKey: NSLocalizedString(description, nil),
-                               NSLocalizedFailureReasonErrorKey: NSLocalizedString(reaason, nil),
+                               NSLocalizedFailureReasonErrorKey: NSLocalizedString(reason, nil),
                                NSLocalizedRecoverySuggestionErrorKey: NSLocalizedString(suggestion, nil)
                                };
     
