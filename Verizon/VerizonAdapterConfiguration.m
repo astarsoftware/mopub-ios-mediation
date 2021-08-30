@@ -1,10 +1,9 @@
-#import <VerizonAdsStandardEdition/VerizonAdsStandardEdition.h>
 #import <VerizonAdsCore/VerizonAdsCore.h>
 #import <CoreTelephony/CTCarrier.h>
 #import "VerizonAdapterConfiguration.h"
 #import <zlib.h>
 
-NSString * const kMoPubVASAdapterVersion = @"1.9.0.1";
+NSString * const kMoPubVASAdapterVersion = @"1.14.1.0";
 NSString * const kMoPubVASAdapterErrorWho = @"MoPubVASAdapter";
 NSString * const kMoPubVASAdapterPlacementId = @"placementId";
 NSString * const kMoPubVASAdapterSiteId = @"siteId";
@@ -16,13 +15,6 @@ NSString * const kMoPubVASNetworkName   = @"verizon";
 NSString * const kMoPubServerExtrasAdContent     = @"adMarkup";
 NSString * const kMoPubRequestMetadataAdContent  = @"adContent";
 NSString * const kMoPubVASAdImpressionEventId    = @"adImpression";
-
-NSString * const kVASBiddingTokenVersion = @"1.2";
-
-size_t kVASCompressionBufferSize = 4096;
-
-static NSString * const kVASBiddingTokenKey     = @"biddingToken";
-static NSString * biddingToken = nil;
 
 @interface VerizonAdapterConfiguration ()
 
@@ -52,7 +44,7 @@ static NSString * biddingToken = nil;
     }
     if (siteId.length > 0) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            if ([VASStandardEdition initializeWithSiteId:siteId]) {
+            if ([VASAds initializeWithSiteId:siteId]) {
                 MPLogInfo(@"VAS adapter version: %@", kMoPubVASAdapterVersion);
             }
             if (complete) {
@@ -79,16 +71,7 @@ static NSString * biddingToken = nil;
 
 - (NSString *)biddingToken
 {
-    if (! [VASAds sharedInstance].initialized) {
-        MPLogInfo(@"Failed to get biddingToken. Verizon SDK must first be initialized.");
-        return nil;
-    }
-    
-    if (! biddingToken) {
-        biddingToken = [self compressedBiddingToken:[self buildToken]];
-    }
-    
-    return biddingToken;
+    return [[VASAds sharedInstance] biddingToken];
 }
 
 - (NSString *)moPubNetworkName
@@ -113,62 +96,6 @@ static NSString * biddingToken = nil;
     NSRange range = [adapterVersion rangeOfString:@"." options:NSBackwardsSearch];
     
     return adapterVersion.length > range.location ? [adapterVersion substringToIndex:range.location] : @"";
-}
-
-- (NSString *)buildToken
-{
-    NSString *editionName = [[VASAds sharedInstance].configuration stringForDomain:kVASConfigDomain key:kVASConfigEditionNameKey withDefault:nil];
-    NSString *editionVersion = [[VASAds sharedInstance].configuration stringForDomain:kVASConfigDomain key:kVASConfigEditionVersionKey withDefault:nil];
-    
-    NSString *editionId;
-    if (editionName != nil && editionVersion != nil) {
-        editionId = [NSString stringWithFormat:@"%@-%@", editionName, editionVersion];
-    }
-    
-    NSDictionary *tokenDict = @{ @"env" : @{ @"sdkInfo" : @{@"version" : kVASBiddingTokenVersion,
-                                                            @"editionId" : NULL_OR_VALUE(editionId)
-    }
-    }
-    };
-    
-    @try {
-        NSError *error;
-        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:tokenDict options:0 error:&error];
-        if (jsonData != nil) {
-            return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        }
-        MPLogInfo(@"Unable to build biddingToken, %@", error.description);
-        return nil;
-    } @catch (NSException *exception) {
-        MPLogInfo(@"Unable to build biddingToken, %@", exception.description);
-    }
-    
-    return nil;
-}
-
-- (NSString *)compressedBiddingToken:(NSString *)token
-{
-    NSData *tokenData = [token dataUsingEncoding:NSUTF8StringEncoding];
-    
-    size_t buf_size = kVASCompressionBufferSize;
-    uLongf dest_len = (uLongf)buf_size;
-    
-    Byte *compr = (Byte*)malloc(buf_size);
-    Byte *uncompr = (Byte*)[tokenData bytes];
-    
-    int result = compress(compr, &dest_len, uncompr, (uLong)tokenData.length);
-    if (result != Z_OK) {
-        MPLogInfo(@"Unable to compress biddingToken, %@", @(result));
-        free(compr);
-        return nil;
-    }
-    
-    // Now base64
-    NSData *compressedData = [NSData dataWithBytes:compr length:dest_len];
-    NSString *base64String = [compressedData base64EncodedStringWithOptions:kNilOptions];
-    free(compr);
-    
-    return base64String;
 }
 
 @end

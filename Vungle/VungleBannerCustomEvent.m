@@ -5,17 +5,18 @@
 //  Copyright © 2019 MoPub. All rights reserved.
 //
 
-#import <VungleSDK/VungleSDK.h>
 #import "VungleBannerCustomEvent.h"
 #if __has_include("MoPub.h")
-    #import "MPLogging.h"
-    #import "MoPub.h"
+#import "MPLogging.h"
+#import "MoPub.h"
 #endif
 #import "VungleRouter.h"
+#import <VungleSDK/VungleSDK.h>
 
 @interface VungleBannerCustomEvent () <VungleRouterDelegate>
 
 @property (nonatomic, copy) NSString *placementId;
+@property (nonatomic, copy) NSString *adMarkup;
 @property (nonatomic, copy) NSDictionary *options;
 @property (nonatomic, assign) NSDictionary *bannerInfo;
 @property (nonatomic, assign) NSTimer *timeOutTimer;
@@ -39,12 +40,13 @@
 - (void)requestAdWithSize:(CGSize)size adapterInfo:(NSDictionary *)info adMarkup:(NSString *)adMarkup
 {
     self.placementId = [info objectForKey:kVunglePlacementIdKey];
+    self.adMarkup = adMarkup;
     self.options = nil;
     
     NSString *format = [info objectForKey:@"adunit_format"];
     BOOL isMediumRectangleFormat = (format != nil ? [[format lowercaseString] containsString:@"medium_rectangle"] : NO);
     BOOL isBannerFormat = (format != nil ? [[format lowercaseString] containsString:@"banner"] : NO);
-
+    
     //Vungle only supports Medium Rectangle or Banner
     if (!isMediumRectangleFormat && !isBannerFormat) {
         MPLogInfo(@"Vungle only supports 300*250, 320*50 and 728*90 sized ads. Please ensure your MoPub adunit's format is Medium Rectangle or Banner.");
@@ -54,17 +56,17 @@
         
         return;
     }
-
+    
     self.bannerSize = isMediumRectangleFormat ? kVNGMRECSize : [self sizeForCustomEventInfo:size];
     self.bannerInfo = info;
     self.isAdCached = NO;
     
     if (@available(iOS 10.0, *)) {
         self.timeOutTimer = [NSTimer scheduledTimerWithTimeInterval:BANNER_TIMEOUT_INTERVAL repeats:NO block:^(NSTimer * _Nonnull timer) {
-        if (!self.isAdCached) {
-            [[VungleRouter sharedRouter] clearDelegateForRequestingBanner];
-        }
-    }];
+            if (!self.isAdCached) {
+                [[VungleRouter sharedRouter] clearDelegateForRequestingBanner];
+            }
+        }];
     }
     
     MPLogAdEvent([MPLogEvent adLoadAttemptForAdapter:NSStringFromClass(self.class) dspCreativeId:nil dspName:nil], self.getPlacementID);
@@ -73,9 +75,7 @@
 
 - (void)dealloc
 {
-    if (self.bannerState == BannerRouterDelegateStatePlaying) {
-        [[VungleSDK sharedSDK] finishDisplayingAd:self.placementId];
-    }
+    [[VungleRouter sharedRouter] completeBannerAdViewForDelegate:self];
 }
 
 - (CGSize)sizeForCustomEventInfo:(CGSize)size
@@ -186,6 +186,11 @@
 - (NSString *)getPlacementID
 {
     return self.placementId;
+}
+
+- (NSString *)getAdMarkup
+{
+    return self.adMarkup;
 }
 
 - (CGSize)getBannerSize

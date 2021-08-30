@@ -5,13 +5,11 @@
 //  Copyright (c) 2015 MoPub. All rights reserved.
 //
 
-#import <VungleSDK/VungleSDK.h>
 #if __has_include("MoPub.h")
-    #import "MPError.h"
-    #import "MPLogging.h"
-    #import "MoPub.h"
-    #import "MPReward.h"
-    #import "MPRewardedVideoError.h"
+#import "MPError.h"
+#import "MPLogging.h"
+#import "MoPub.h"
+#import "MPReward.h"
 #endif
 #import "VungleAdapterConfiguration.h"
 #import "VungleInstanceMediationSettings.h"
@@ -21,6 +19,7 @@
 @interface VungleRewardedVideoCustomEvent ()  <VungleRouterDelegate>
 
 @property (nonatomic, copy) NSString *placementId;
+@property (nonatomic, copy) NSString *adMarkup;
 @property (nonatomic) BOOL isAdLoaded;
 
 @end
@@ -43,7 +42,7 @@
 
 - (BOOL)hasAdAvailable
 {
-    return [[VungleSDK sharedSDK] isAdCachedForPlacementID:self.placementId];
+    return [[VungleRouter sharedRouter] isAdAvailableForDelegate:self];
 }
 
 - (BOOL)enableAutomaticImpressionAndClickTracking
@@ -54,10 +53,11 @@
 - (void)requestAdWithAdapterInfo:(NSDictionary *)info adMarkup:(NSString *)adMarkup
 {
     self.placementId = [info objectForKey:kVunglePlacementIdKey];
-
+    self.adMarkup = adMarkup;
+    
     // Cache the initialization parameters
     [VungleAdapterConfiguration updateInitializationParameters:info];
-
+    
     MPLogAdEvent([MPLogEvent adLoadAttemptForAdapter:NSStringFromClass(self.class) dspCreativeId:nil dspName:nil], self.placementId);
     [[VungleRouter sharedRouter] requestRewardedVideoAdWithCustomEventInfo:info delegate:self];
 }
@@ -65,15 +65,15 @@
 - (void)presentAdFromViewController:(UIViewController *)viewController
 {
     MPLogAdEvent([MPLogEvent adShowAttemptForAdapter:NSStringFromClass(self.class)], self.placementId);
-    if ([[VungleRouter sharedRouter] isAdAvailableForPlacementId:self.placementId]) {
+    if ([[VungleRouter sharedRouter] isAdAvailableForDelegate:self]) {
         VungleInstanceMediationSettings *settings = [self.delegate fullscreenAdAdapter:self instanceMediationSettingsForClass:VungleInstanceMediationSettings.class];
-
+        
         [[VungleRouter sharedRouter] presentRewardedVideoAdFromViewController:viewController
                                                                    customerId:[self.delegate customerIdForAdapter:self]
                                                                      settings:settings
-                                                               forPlacementId:self.placementId];
+                                                                     delegate:self];
     } else {
-        NSError *error = [NSError errorWithDomain:MoPubRewardedVideoAdsSDKDomain code:MPRewardedVideoAdErrorNoAdsAvailable userInfo:@{ NSLocalizedDescriptionKey: @"Failed to show Vungle rewarded video: Vungle now claims that there is no available video ad."}];
+        NSError *error = [NSError errorWithDomain:MoPubRewardedAdsSDKDomain code:MPRewardedAdErrorNoAdsAvailable userInfo:@{ NSLocalizedDescriptionKey: @"Failed to show Vungle rewarded video: Vungle now claims that there is no available video ad."}];
         MPLogAdEvent([MPLogEvent adShowFailedForAdapter:NSStringFromClass(self.class) error:error], [self getPlacementID]);
         [self.delegate fullscreenAdAdapter:self didFailToShowAdWithError:error];
     }
@@ -81,7 +81,7 @@
 
 - (void)cleanUp
 {
-    [[VungleRouter sharedRouter] clearDelegateForPlacementId:self.placementId];
+    [[VungleRouter sharedRouter] cleanupFullScreenDelegate:self];
 }
 
 #pragma mark - MPVungleDelegate
@@ -100,13 +100,13 @@
 - (void)vungleAdWillAppear
 {
     MPLogAdEvent([MPLogEvent adWillAppearForAdapter:NSStringFromClass(self.class)], [self getPlacementID]);
-    [self.delegate fullscreenAdAdapterAdWillAppear:self];
+    [self.delegate fullscreenAdAdapterAdWillPresent:self];
 }
 
 - (void)vungleAdDidAppear
 {
     MPLogAdEvent([MPLogEvent adDidAppearForAdapter:NSStringFromClass(self.class)], [self getPlacementID]);
-    [self.delegate fullscreenAdAdapterAdDidAppear:self];
+    [self.delegate fullscreenAdAdapterAdDidPresent:self];
 }
 
 - (void)vungleAdViewed
@@ -169,6 +169,11 @@
 - (NSString *)getPlacementID
 {
     return self.placementId;
+}
+
+- (NSString *)getAdMarkup
+{
+    return self.adMarkup;
 }
 
 - (void)rewardUser

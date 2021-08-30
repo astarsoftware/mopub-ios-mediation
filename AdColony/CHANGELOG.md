@@ -1,4 +1,24 @@
 ## Changelog
+  * 4.7.1.0
+    * This version of the adapters has been certified with AdColony 4.7.1 and MoPub SDK 5.18.0.
+
+  * 4.6.1.1
+    * Adjust minimium MoPub SDK version from 5.17.0 to 5.17. This allows integrations to use MoPub 5.17.x up to (but not including) 6.0.
+    * Service release. No new features. 
+
+  * 4.6.1.0
+    * This version of the adapters has been certified with AdColony 4.6.1 and MoPub SDK 5.17.0.
+
+  * 4.6.0.2
+    * Add `fullscreenAdAdapterAdWillPresent` and `fullscreenAdAdapterAdDidPresent` to notify publishers of the fullscreen ad show event. Remove `fullscreenAdAdapterAdWillAppear` and  `fullscreenAdAdapterAdDidAppear` as they are now deprecated by the MoPub iOS SDK.
+    * Publishers must use v5.17.0 of the MoPub SDK at the minimum.
+
+  * 4.6.0.1
+    * Remove deprecated usage of Rewarded Video APIs.
+
+  * 4.6.0.0
+    * This version of the adapters has been certified with AdColony 4.6.0 and MoPub SDK 5.16.2.
+
   * 4.5.0.2
     * Service release. No new features or code changes.
 

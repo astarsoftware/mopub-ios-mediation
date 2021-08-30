@@ -5,9 +5,8 @@
 //  Copyright (c) 2015 MoPub. All rights reserved.
 //
 
+#import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
-#import <VungleSDK/VungleSDK.h>
-#import <VungleSDK/VungleSDKNativeAds.h>
 
 extern NSString *const kVungleAppIdKey;
 extern NSString *const kVunglePlacementIdKey;
@@ -27,8 +26,9 @@ extern const CGSize kVNGLeaderboardBannerSize;
 
 @protocol VungleRouterDelegate;
 @class VungleInstanceMediationSettings;
+typedef NS_ENUM(NSInteger, VungleConsentStatus);
 
-@interface VungleRouter : NSObject <VungleSDKDelegate, VungleSDKNativeAds>
+@interface VungleRouter : NSObject
 
 + (VungleRouter *)sharedRouter;
 
@@ -38,20 +38,20 @@ extern const CGSize kVNGLeaderboardBannerSize;
 - (void)requestInterstitialAdWithCustomEventInfo:(NSDictionary *)info delegate:(id<VungleRouterDelegate>)delegate;
 - (void)requestRewardedVideoAdWithCustomEventInfo:(NSDictionary *)info delegate:(id<VungleRouterDelegate>)delegate;
 - (void)requestBannerAdWithCustomEventInfo:(NSDictionary *)info size:(CGSize)size delegate:(id<VungleRouterDelegate>)delegate;
-- (BOOL)isAdAvailableForPlacementId:(NSString *)placementId;
+- (BOOL)isAdAvailableForDelegate:(id<VungleRouterDelegate>)delegate;
 - (NSString *)currentSuperToken;
-- (void)presentInterstitialAdFromViewController:(UIViewController *)viewController options:(NSDictionary *)options forPlacementId:(NSString *)placementId;
-- (void)presentRewardedVideoAdFromViewController:(UIViewController *)viewController customerId:(NSString *)customerId settings:(VungleInstanceMediationSettings *)settings forPlacementId:(NSString *)placementId;
+- (void)presentInterstitialAdFromViewController:(UIViewController *)viewController options:(NSDictionary *)options delegate:(id<VungleRouterDelegate>)delegate;
+- (void)presentRewardedVideoAdFromViewController:(UIViewController *)viewController customerId:(NSString *)customerId settings:(VungleInstanceMediationSettings *)settings delegate:(id<VungleRouterDelegate>)delegate;
 - (UIView *)renderBannerAdInView:(UIView *)bannerView
                         delegate:(id<VungleRouterDelegate>)delegate
                          options:(NSDictionary *)options
                   forPlacementID:(NSString *)placementID
                             size:(CGSize)size;
+- (void)completeBannerAdViewForDelegate:(id<VungleRouterDelegate>)delegate;
 - (void)updateConsentStatus:(VungleConsentStatus)status;
 - (VungleConsentStatus) getCurrentConsentStatus;
-- (void)clearDelegateForPlacementId:(NSString *)placementId;
+- (void)cleanupFullScreenDelegate:(id<VungleRouterDelegate>)delegate;
 - (void)clearDelegateForRequestingBanner;
-
 @end
 
 typedef NS_ENUM(NSUInteger, BannerRouterDelegateState) {
@@ -76,6 +76,7 @@ typedef NS_ENUM(NSUInteger, BannerRouterDelegateState) {
 - (void)vungleAdDidFailToPlay:(NSError *)error;
 - (void)vungleAdDidFailToLoad:(NSError *)error;
 - (NSString *)getPlacementID;
+- (NSString *)getAdMarkup;
 
 @optional
 
