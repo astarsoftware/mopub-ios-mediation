@@ -116,7 +116,6 @@
     return NO;
 }
 
-
 #pragma mark - GADFullScreenContentDelegate
 - (void)adDidRecordImpression:(nonnull id<GADFullScreenPresentingAd>)ad {
     [self.delegate fullscreenAdAdapterDidTrackImpression:self];
@@ -130,6 +129,7 @@
     [[NSNotificationCenter defaultCenter] postNotificationName:@"AdDidLoadForAdMob"
                                                         object:nil
                                                       userInfo:networkInfo];
+
 }
 
 - (void)adDidPresentFullScreenContent:(nonnull id<GADFullScreenPresentingAd>)ad {
