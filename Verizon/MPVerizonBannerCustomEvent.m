@@ -144,6 +144,7 @@
                 networkInfo[@"vzDemandSource"] = inlineAd.creativeInfo.demandSource;
             }
 
+			// astar
             [[NSNotificationCenter defaultCenter] postNotificationName:@"AdDidLoadForVerizon"
                                                                 object:nil
                                                               userInfo:networkInfo];

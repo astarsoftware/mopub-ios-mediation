@@ -126,6 +126,7 @@
         networkInfo[@"adNetworkClassName"] = bannerView.responseInfo.adNetworkClassName;
     }
 
+	  // astar
     [[NSNotificationCenter defaultCenter] postNotificationName:@"AdDidLoadForAdMob"
                                                         object:nil
                                                       userInfo:networkInfo];

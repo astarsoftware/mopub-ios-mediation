@@ -151,6 +151,7 @@
         if(interstitialAd.creativeInfo.demandSource) {
             networkInfo[@"vzDemandSource"] = interstitialAd.creativeInfo.demandSource;
         }
+		// astar
         [[NSNotificationCenter defaultCenter] postNotificationName:@"AdDidLoadForVerizon"
                                                             object:nil
                                                           userInfo:networkInfo];
