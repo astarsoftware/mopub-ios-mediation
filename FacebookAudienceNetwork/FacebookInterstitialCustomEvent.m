@@ -166,7 +166,7 @@
     [self.timer scheduleNow];
 	
 	ASAdTracker *adTracker = [DependencyInjector objectWithClass:[ASAdTracker class]];
-	[adTracker adDidLoadForNetwork:@"facebook" data:nil];
+	[adTracker adDidLoadForMediator:@"MoPub" fromNetwork:@"facebook" ofType:@"fullscreen" data:nil];
 
 }
 

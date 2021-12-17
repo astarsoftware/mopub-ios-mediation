@@ -147,7 +147,7 @@
     [self.delegate inlineAdAdapter:self didLoadAdWithAdView:adView];
     
 	ASAdTracker *adTracker = [DependencyInjector objectWithClass:[ASAdTracker class]];
-	[adTracker adDidLoadForNetwork:@"facebook" data:nil];
+	[adTracker adDidLoadForMediator:@"MoPub" fromNetwork:@"facebook" ofType:@"banner" data:nil];
 
 }
 
